@@ -1,0 +1,39 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+    environment:
+      - PYTHONPATH=/app/ml
+      - TMDB_READ_ACCESS_TOKEN=eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjY2RjNjRjNTAxYzZjMmQwMGQzOTIwMTdjZWMwMTZmYyIsIm5iZiI6MTc4Mjg1MzIxOC41MjksInN1YiI6IjZhNDQyZTYyMzlhOTc5MjE3MTVkMThjMyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.2WTDgiV3mO0yzs-liRq_loQtjxETImZq4CxUyrYLGjM
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/movies
+      - SECRET_KEY=7645743542907865623
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "5173:5173"
+    networks:
+      - app-network
+    depends_on:
+      - backend
+    # Important for Vite to enable hot-reloading inside Docker
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000 # Adjust based on how your frontend calls the API
+
+# Define the custom network as required by the specifications
+networks:
+  app-network:
+    driver: bridge
